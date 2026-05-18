@@ -1,0 +1,21 @@
+#!/sbin/openrc-run
+description="Podroid vsock control + port forwarding agent (AVF only)"
+command="/usr/local/bin/podroid-vsock-agent"
+command_background="yes"
+pidfile="/run/podroid-vsock-agent.pid"
+output_log="/var/log/podroid-vsock-agent.log"
+error_log="/var/log/podroid-vsock-agent.log"
+
+depend() {
+    need podroid-bootstrap
+    before podroid-ready
+}
+
+start_pre() {
+    # AVF-only: the QEMU backend never bound an AF_VSOCK socket — skip on QEMU.
+    if ! grep -q 'podroid\.tty=ttyS0' /proc/cmdline 2>/dev/null; then
+        ewarn "Not an AVF boot — skipping podroid-vsock"
+        return 1
+    fi
+    return 0
+}

@@ -93,6 +93,7 @@ cp /work/files/etc/init.d/podroid-network   "$ROOTFS/etc/init.d/"
 cp /work/files/etc/init.d/podroid-resize    "$ROOTFS/etc/init.d/"
 cp /work/files/etc/init.d/podroid-ready     "$ROOTFS/etc/init.d/"
 cp /work/files/etc/init.d/podroid-x11       "$ROOTFS/etc/init.d/"
+cp /work/files/etc/init.d/podroid-vsock     "$ROOTFS/etc/init.d/"
 chmod +x "$ROOTFS/etc/init.d/podroid-"*
 
 # Copy /usr/local/bin scripts (resize daemon + login wrapper + getty selector)
@@ -107,6 +108,10 @@ chmod +x "$ROOTFS/usr/local/bin/podroid-vsock-agent" 2>/dev/null || true
 chmod +x "$ROOTFS/usr/local/bin/podroid-"*
 mkdir -p "$ROOTFS/etc/conf.d"
 cp /work/files/etc/conf.d/podroid "$ROOTFS/etc/conf.d/"
+# vsock agent's initial forward table (read at podroid-vsock startup).
+mkdir -p "$ROOTFS/etc/podroid"
+cp /work/files/etc/podroid/forwards.conf "$ROOTFS/etc/podroid/forwards.conf"
+chmod 0644 "$ROOTFS/etc/podroid/forwards.conf"
 cp /work/files/etc/inittab "$ROOTFS/etc/inittab"
 cp /work/files/etc/rc.conf "$ROOTFS/etc/rc.conf"
 
@@ -144,7 +149,7 @@ EOF
 # Set runlevels via direct symlinks (host is x86_64, can't chroot into aarch64 rootfs to run rc-update).
 # rc-update is just `ln -s /etc/init.d/X /etc/runlevels/<level>/X` under the hood.
 mkdir -p "$ROOTFS/etc/runlevels/default" "$ROOTFS/etc/runlevels/boot"
-for svc in podroid-bootstrap podroid-network podroid-resize dropbear docker lxc dnsmasq.lxcbr0 podroid-x11 podroid-ready; do
+for svc in podroid-bootstrap podroid-network podroid-resize dropbear docker lxc dnsmasq.lxcbr0 podroid-x11 podroid-vsock podroid-ready; do
     ln -sf "/etc/init.d/$svc" "$ROOTFS/etc/runlevels/default/$svc"
 done
 
