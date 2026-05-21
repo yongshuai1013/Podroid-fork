@@ -74,7 +74,9 @@ chmod 0440 "$ROOTFS/etc/sudoers.d/wheel"
 # Set root password to "podroid" (pre-hashed with openssl).
 # We can't run chpasswd inside the aarch64 rootfs from an x86_64 host,
 # so write the SHA-512 hash directly into /etc/shadow.
-ROOT_HASH=$(openssl passwd -6 -salt podroid podroid)
+# No fixed -salt: openssl generates a random salt so the stored hash differs
+# per build (the password stays the documented default "podroid").
+ROOT_HASH=$(openssl passwd -6 podroid)
 sed -i "s|^root:[^:]*:|root:${ROOT_HASH}:|" "$ROOTFS/etc/shadow"
 
 # Strip docs/man/locale to shrink squashfs

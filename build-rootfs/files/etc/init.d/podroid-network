@@ -13,8 +13,11 @@ start() {
     ip link set lo up 2>/dev/null
     NETIF=""
     for _i in $(seq 1 10); do
+        # Exclude virtual/bridge devices so the real virtio NIC is picked.
+        # lxcbr0 is created by podroid-bootstrap (which runs *before* us), so
+        # it would otherwise be a candidate; br-/cni cover other bridge names.
         NETIF=$(ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | \
-            grep -vE '^(lo|dummy[0-9]*|veth|podman|cni-|docker)' | head -1)
+            grep -vE '^(lo|dummy[0-9]*|veth|podman|cni|docker|lxcbr|br-)' | head -1)
         [ -n "$NETIF" ] && break
         sleep 0.05
     done
@@ -49,6 +52,14 @@ start() {
         ip route add default via 10.0.2.2 dev "$NETIF" 2>/dev/null
         printf 'nameserver 10.0.2.3\nnameserver 8.8.8.8\nnameserver 1.1.1.1\n' \
             > /etc/resolv.conf
+        # Mirror the AVF post-check: if the static assignment didn't stick
+        # (wrong NIC, link not up), don't report success. Dependents that
+        # `need` us would assume the link is up and then SSH/apk fail with no
+        # obvious cause. Surface it instead.
+        if ! ip -o -4 addr show dev "$NETIF" 2>/dev/null | grep -q 'inet '; then
+            eend 1 "static IP did not stick on $NETIF"
+            return 1
+        fi
     fi
     echo "Network found" > /dev/console
     eend 0

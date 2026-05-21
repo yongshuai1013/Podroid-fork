@@ -17,6 +17,15 @@ echo "Mounting storage..." > /dev/console
 # /dev/vdb = read-only Alpine squashfs (system files)
 mkdir -p /mnt/persist /mnt/lower /mnt/overlay
 
+# Bounded wait for the virtio block nodes: on most boots they already exist
+# (loop breaks on the first iteration), but a slow virtio_blk probe can lag
+# behind init. Cap the wait so a genuinely-missing node still drops to the
+# FATAL diagnostics below instead of hanging forever.
+for _i in $(seq 1 30); do
+    [ -b /dev/vda ] && [ -b /dev/vdb ] && break
+    sleep 0.1
+done
+
 # Persistent: format on first boot if needed.
 # noatime: stop atime writes on every read.
 # commit=60: journal commits every 60s (default 5s) — 12× less journal IO
@@ -27,34 +36,43 @@ mkdir -p /mnt/persist /mnt/lower /mnt/overlay
 #   Saves journal-commit syscalls on every metadata change.
 if ! mount -t ext4 -o rw,noatime,commit=60,barrier=0 /dev/vda /mnt/persist 2>/dev/null; then
     e2fsck -y /dev/vda >/dev/null 2>&1 || mkfs.ext4 -q -F /dev/vda
-    mount -t ext4 -o rw,noatime,commit=60,barrier=0 /dev/vda /mnt/persist
+    mount -t ext4 -o rw,noatime,commit=60,barrier=0 /dev/vda /mnt/persist \
+        || { echo "FATAL: persistent ext4 (/dev/vda) mount failed" > /dev/console; ls -l /dev/vd* > /dev/console 2>&1; exec sh; }
 fi
 
 echo "Mounting system..." > /dev/console
 mount -t squashfs -o ro /dev/vdb /mnt/lower \
-    || { echo "FATAL: squashfs (/dev/vdb) mount failed" > /dev/console; exec sh; }
+    || { echo "FATAL: squashfs (/dev/vdb) mount failed" > /dev/console; ls -l /dev/vd* > /dev/console 2>&1; exec sh; }
 
-mkdir -p /mnt/persist/upper /mnt/persist/work
+mkdir -p /mnt/persist/upper /mnt/persist/work \
+    || { echo "FATAL: mkdir overlay upper/work failed" > /dev/console; exec sh; }
 echo "Stacking overlay..." > /dev/console
 mount -t overlay overlay \
     -o lowerdir=/mnt/lower,upperdir=/mnt/persist/upper,workdir=/mnt/persist/work,metacopy=on,redirect_dir=on,index=on \
     /mnt/overlay \
-    || { echo "FATAL: overlay mount failed" > /dev/console; exec sh; }
+    || { echo "FATAL: overlay mount failed" > /dev/console; ls -l /dev/vd* > /dev/console 2>&1; exec sh; }
 
 # Move /mnt/persist into the new root so users can reach raw storage,
 # and so switch_root can fully clear initramfs (no orphan mounts left
 # under /mnt that would block its unlink pass).
-mkdir -p /mnt/overlay/mnt/persist
-mount --move /mnt/persist /mnt/overlay/mnt/persist
+mkdir -p /mnt/overlay/mnt/persist \
+    || { echo "FATAL: mkdir /mnt/overlay/mnt/persist failed" > /dev/console; exec sh; }
+mount --move /mnt/persist /mnt/overlay/mnt/persist \
+    || { echo "FATAL: mount --move /mnt/persist failed" > /dev/console; exec sh; }
 
 # Move /mnt/lower (the squashfs) too — keeps /dev/vdb mount visible in the
 # new root, and lets initramfs cleanup unlink /mnt cleanly.
-mkdir -p /mnt/overlay/mnt/lower
-mount --move /mnt/lower /mnt/overlay/mnt/lower
+mkdir -p /mnt/overlay/mnt/lower \
+    || { echo "FATAL: mkdir /mnt/overlay/mnt/lower failed" > /dev/console; exec sh; }
+mount --move /mnt/lower /mnt/overlay/mnt/lower \
+    || { echo "FATAL: mount --move /mnt/lower failed" > /dev/console; exec sh; }
 
 # Move our early mounts into the new root so OpenRC inherits them
-mount --move /proc /mnt/overlay/proc
-mount --move /sys  /mnt/overlay/sys
-mount --move /dev  /mnt/overlay/dev
+mount --move /proc /mnt/overlay/proc \
+    || { echo "FATAL: mount --move /proc failed" > /dev/console; exec sh; }
+mount --move /sys  /mnt/overlay/sys \
+    || { echo "FATAL: mount --move /sys failed" > /dev/console; exec sh; }
+mount --move /dev  /mnt/overlay/dev \
+    || { echo "FATAL: mount --move /dev failed" > /dev/console; exec sh; }
 
 exec /sbin/switch_root /mnt/overlay /sbin/init

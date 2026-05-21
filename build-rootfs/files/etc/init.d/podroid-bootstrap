@@ -84,17 +84,15 @@ start() {
     if [ -b /dev/zram0 ]; then
         _mem_kb=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
         echo lz4 > /sys/block/zram0/comp_algorithm 2>/dev/null
+        # *1536 = KiB→bytes (*1024) × 1.5 ratio; disksize wants bytes.
         echo $((_mem_kb * 1536)) > /sys/block/zram0/disksize 2>/dev/null
         mkswap /dev/zram0 >/dev/null 2>&1 && swapon -p 100 /dev/zram0 2>/dev/null
     fi
 
-    # OOM tuning: prefer killing leaf user-apps (Firefox, browsers, npm,
-    # webpack) over our infrastructure. Higher score = killed first. -1000
-    # = OOM-immune (set in podroid-ready for dropbear/Xvnc/agent so all
-    # those services exist by then). Bumping the OOM "score adjustment"
-    # for non-protected processes is left to the kernel default. The big
-    # win is making sure VNC + SSH + the host-vsock relay survive even
-    # when a memory-hog browser tab gets reaped.
+    # OOM behavior: re-assert the kernel default (0 = let the OOM killer pick
+    # the highest-badness victim, rather than killing whatever triggered the
+    # allocation). Per-service immunity (-1000 for dropbear/Xvnc/agent) is set
+    # in podroid-ready once those services exist.
     [ -w /proc/sys/vm/oom_kill_allocating_task ] && \
         echo 0 > /proc/sys/vm/oom_kill_allocating_task
     # overcommit_memory=1 (always overcommit) lets us actually hand out

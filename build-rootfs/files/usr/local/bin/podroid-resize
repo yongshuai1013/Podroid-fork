@@ -23,6 +23,11 @@ while IFS= read -r _line; do
     case "$_line" in
         RESIZE\ *)
             set -- $_line
+            # Reject empty / non-numeric / zero rows or cols before persisting:
+            # a malformed line must not stamp junk into /run/term_size (which
+            # podroid-login reads back) or stty a 0x0 winsize onto hvc0.
+            case "$2" in ''|*[!0-9]*|0) continue;; esac
+            case "$3" in ''|*[!0-9]*|0) continue;; esac
             stty rows "$2" cols "$3" </dev/hvc0 2>/dev/null
             printf '%s %s\n' "$2" "$3" > /run/term_size 2>/dev/null
             ;;

@@ -25,6 +25,20 @@ start() {
         --stderr /var/log/podroid-vsock-agent.log \
         --exec /usr/local/bin/podroid-vsock-agent
     _agent_rc=$?
+    # --background returns 0 the instant the child forks, even if the agent
+    # exits immediately (e.g. AF_VSOCK bind failure). Poll the pidfile's PID:
+    # a healthy agent breaks out on the first ~0.1s tick; a crash-on-launch
+    # misses every tick and the final kill -0 flips the rc.
+    if [ "$_agent_rc" -eq 0 ]; then
+        _agent_pid=$(cat "$pidfile" 2>/dev/null)
+        _i=0
+        while [ "$_i" -lt 10 ]; do
+            sleep 0.1
+            kill -0 "$_agent_pid" 2>/dev/null && break
+            _i=$((_i + 1))
+        done
+        kill -0 "$_agent_pid" 2>/dev/null || _agent_rc=1
+    fi
     [ "$_agent_rc" -eq 0 ] || ewarn "podroid-vsock-agent failed to start (see /var/log/podroid-vsock-agent.log)"
     eend "$_agent_rc"
 }
