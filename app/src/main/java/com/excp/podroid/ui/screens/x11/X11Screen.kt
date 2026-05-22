@@ -4,7 +4,6 @@
  */
 package com.excp.podroid.ui.screens.x11
 
-import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -13,6 +12,7 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -78,7 +78,6 @@ import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.isTertiaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -165,7 +164,7 @@ fun X11Screen(
     val s by viewModel.x11Settings.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.connect() }
 
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     // Restore orientation when leaving; without this the lock persists onto
     // terminal/home until process restart.
     DisposableEffect(Unit) {

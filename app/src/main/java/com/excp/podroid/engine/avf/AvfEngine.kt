@@ -16,8 +16,10 @@
 package com.excp.podroid.engine.avf
 
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.excp.podroid.data.repository.PortForwardRule
 import com.excp.podroid.data.repository.SettingsRepository
 import com.excp.podroid.engine.BootStageDetector
@@ -41,6 +43,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// AVF requires API 34 (UpsideDownCake). EngineHolder only resolves the
+// Provider<AvfEngine> when getCapabilities() reports AVF support, which implies
+// API 34+, but lint can't see that runtime gate - declaring the class here lets
+// the in-class calls to the @RequiresApi(34) avf/* helpers type-check cleanly.
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Singleton
 class AvfEngine @Inject constructor(
     @ApplicationContext private val context: Context,
