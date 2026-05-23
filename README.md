@@ -79,7 +79,7 @@ Default login: **root / podroid**.
 - **Podman, Docker and LXC pre-installed.** Rootless Podman wired up with crun + netavark + slirp4netns; `rc-service docker start` runs the Docker daemon, and `lxc-create -t download` pulls full distro containers (Alpine, Ubuntu, Debian, …) out of the box.
 - **OpenRC as PID 1.** `apk add` whatever you want, `rc-service ... start`, and it persists across reboots.
 - **In-app X11 viewer** (Xvnc + PulseAudio): live-resizable display (match-device, or 720p–1440p / custom presets), direct-touch and trackpad pointer modes with scroll, fullscreen, rotation lock, external-keyboard and mouse-wheel support, soft-keyboard input, and PCM audio over loopback.
-- **USB device passthrough.** Hot-plug a real USB device — Wi-Fi adapter, storage, serial adapter, audio interface — into the running VM straight from the Android USB stack. No root and no XML device filter: each device asks for permission when attached and is streamed to QEMU over QMP while the app runs.
+- **USB device passthrough** *(coming soon)*. Hot-plug a real USB device — Wi-Fi adapter, storage, serial adapter, audio interface — into the running VM straight from the Android USB stack. No root and no XML device filter: each device asks for permission when attached and is streamed to QEMU over QMP while the app runs.
 - **Built-in terminal** powered by the Termux engine: xterm-256color, mouse tracking, debounced resize, customizable extra-keys row.
 - **Persistent ext4 overlay** on a read-only Alpine squashfs. Installs and configs survive every reboot.
 - **Adaptive Material 3 UI** for phone, tablet and landscape, with dynamic color and a foreground service that keeps the VM alive.
@@ -104,7 +104,7 @@ Everything below is editable from **Settings**:
 - **CPU cores:** 1 · 2 · 4 · 6 · 8
 - **Persistent storage:** 2 GB to 64 GB (chosen at first setup; reset to change)
 - **Downloads folder sharing:** toggle on/off; mounted inside the VM at `/mnt/downloads` (virtio-9p on QEMU, AVF `SharedPath` where the backend supports it)
-- **USB passthrough:** opt-in toggle in Settings and at first-run setup (alongside Downloads sharing); hot-plugs attached USB devices into the running VM (QEMU backend only — adds a USB controller at boot, so set it while the VM is stopped)
+- **USB passthrough** *(coming soon)*: opt-in toggle in Settings and at first-run setup (alongside Downloads sharing); hot-plugs attached USB devices into the running VM (QEMU backend only — adds a USB controller at boot, so set it while the VM is stopped)
 - **SSH** (Dropbear on host port `9922`): toggle on/off; reachable from the LAN as `ssh root@<phone-ip> -p 9922` once the VM is Ready
 - **Port forwards:** add/remove host ↔ guest TCP/UDP rules live, no VM restart
 - **Advanced QEMU args:** full `-cpu` / `-accel` / RNG / device line, editable
