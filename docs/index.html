@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Podroid: Linux containers on Android, no root required</title>
-  <meta name="description" content="Podroid runs Podman, Docker, and LXC on Android in a real Alpine Linux VM via QEMU with a custom Linux 7.0.5 kernel, plus an in-app X11 desktop for GUI apps. No root, no custom recovery, any ARM64 device." />
+  <meta name="description" content="Podroid runs Podman, Docker, and LXC on Android in a real Alpine Linux VM with a custom Linux 7.0.10 kernel - via QEMU on any ARM64 device, or hardware-accelerated AVF (pKVM) on supported Pixels - plus an in-app X11 desktop for GUI apps. No root, no custom recovery." />
   <meta property="og:title" content="Podroid: Linux containers on Android, no root required" />
-  <meta property="og:description" content="Spin up a real Alpine Linux VM with a full Podman runtime on any Android 9+ ARM64 device. No root, no Magisk, no AVF requirement." />
+  <meta property="og:description" content="Spin up a real Alpine Linux VM with a full Podman runtime on any Android 9+ ARM64 device. QEMU software emulation everywhere, or near-native AVF (pKVM) acceleration on supported Pixels. No root, no Magisk." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://extv.github.io/Podroid/" />
   <meta property="og:image" content="https://extv.github.io/Podroid/logo.png" />
@@ -593,7 +593,7 @@
         <div class="feature-icon">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
         </div>
-        <h3>Custom Linux 7.0.5 Kernel</h3>
+        <h3>Custom Linux 7.0.10 Kernel</h3>
         <p>Compiled from scratch with netfilter, bridge, overlayfs, veth, IPVS, VXLAN, IPsec, cgroup v2, and binfmt_misc all built-in. Docker's <code>check-config.sh</code> reports zero fixable complaints.</p>
       </div>
 
@@ -740,7 +740,7 @@
           </tr>
           <tr>
             <td class="row-label">Custom kernel</td>
-            <td class="col-podroid"><span class="check">✓ Linux 7.0.5</span></td>
+            <td class="col-podroid"><span class="check">✓ Linux 7.0.10</span></td>
             <td><span class="cross">✗ host kernel</span></td>
             <td><span class="check">✓</span></td>
           </tr>
@@ -806,7 +806,7 @@
             │   │   /sbin/init (busybox)           │    │
             │   │   OpenRC (PID 1)                 │    │
             │   │  ┌──────────┐  ┌──────────────┐  │    │
-            │   │  │ Podman + │  │  Linux 7.0.5 │  │    │
+            │   │  │ Podman + │  │ Linux 7.0.10 │  │    │
             └──►│  │  Docker  │  │   (custom)   │  │◄───┘
    boot stages  │  │ + LXC    │  └──────────────┘  │  libpodroid-bridge.so
                 │  └──────────┘                    │  PTY ↔ virtio-console
@@ -826,7 +826,7 @@ qmp.sock               →  runtime port-forward control</div>
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>QEMU loads the kernel</h4>
-          <p>Custom Linux 7.0.5 + a tiny initramfs and an Alpine squashfs are extracted from APK assets on first launch.</p>
+          <p>Custom Linux 7.0.10 + a tiny initramfs and an Alpine squashfs are extracted from APK assets on first launch.</p>
         </div>
       </div>
       <div class="step">
