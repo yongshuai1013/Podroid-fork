@@ -365,6 +365,8 @@ class EngineHolder @Inject constructor(
         current.createTerminalSession(client)
     override suspend fun addPortForward(rule: PortForwardRule) = current.addPortForward(rule)
     override suspend fun removePortForward(rule: PortForwardRule) = current.removePortForward(rule)
+    override fun openHostTransport(): com.excp.podroid.engine.hostbridge.HostTransport? =
+        current.openHostTransport()
     override fun diagnosticsReport(): String = current.diagnosticsReport()
 
     /**

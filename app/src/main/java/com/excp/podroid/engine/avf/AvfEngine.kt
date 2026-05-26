@@ -464,6 +464,11 @@ class AvfEngine @Inject constructor(
         }
     }
 
+    override fun openHostTransport(): com.excp.podroid.engine.hostbridge.HostTransport? {
+        val vm = vmHandle ?: return null
+        return com.excp.podroid.engine.hostbridge.AvfHostTransport.open(vm)
+    }
+
     override suspend fun addPortForward(rule: com.excp.podroid.data.repository.PortForwardRule) {
         if (_state.value !is VmState.Running) return
         val vm = vmHandle ?: return
