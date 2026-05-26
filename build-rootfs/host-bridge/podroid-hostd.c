@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <libgen.h>
 #include <linux/vm_sockets.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +28,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
-#include <time.h>
 #include <unistd.h>
 
 #define SOCK_PATH   "/run/podroid-host.sock"
@@ -122,6 +122,27 @@ static int read_line(int fd, char *buf, size_t cap) {
     return (int)n;
 }
 
+/* Like read_line but waits at most timeout_s for activity before each byte;
+ * returns line length, 0 on EOF, -1 on error/timeout. poll() works on both
+ * char devices (/dev/hvc2) and sockets, unlike SO_RCVTIMEO. */
+static int read_line_timeout(int fd, char *buf, size_t cap, int timeout_s) {
+    size_t n = 0;
+    while (n < cap - 1) {
+        struct pollfd pfd = { .fd = fd, .events = POLLIN };
+        int pr = poll(&pfd, 1, timeout_s * 1000);
+        if (pr < 0) { if (errno == EINTR) continue; return -1; }
+        if (pr == 0) return -1; /* timeout */
+        char c;
+        ssize_t r = read(fd, &c, 1);
+        if (r < 0) { if (errno == EINTR) continue; return -1; }
+        if (r == 0) return n == 0 ? 0 : (int)n;
+        if (c == '\n') break;
+        buf[n++] = c;
+    }
+    buf[n] = '\0';
+    return (int)n;
+}
+
 /* Connects to the daemon, sends `req`, reads one response line into resp. */
 static int cli_roundtrip(const char *req, char *resp, size_t cap) {
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -133,7 +154,7 @@ static int cli_roundtrip(const char *req, char *resp, size_t cap) {
     if (write_line(fd, req) < 0) { close(fd); return -1; }
     int n = read_line(fd, resp, cap);
     close(fd);
-    return n < 0 ? -1 : 0;
+    return n <= 0 ? -1 : 0;
 }
 
 static int cli_report(const char *resp, int list_decode) {
@@ -282,10 +303,9 @@ static int daemon_main(void) {
         }
         if (host_fd < 0) { write_line(cli, "ERR aG9zdCBjaGFubmVsIG5vdCBjb25uZWN0ZWQ="); close(cli); continue; }
 
-        struct timeval tv = { .tv_sec = HOST_TIMEOUT_S, .tv_usec = 0 };
-        setsockopt(host_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
         char resp[8192];
-        if (write_line(host_fd, req) < 0 || read_line(host_fd, resp, sizeof(resp)) <= 0) {
+        if (write_line(host_fd, req) < 0 ||
+            read_line_timeout(host_fd, resp, sizeof(resp), HOST_TIMEOUT_S) <= 0) {
             close(host_fd); host_fd = -1;
             write_line(cli, "ERR dGltZW91dA==");
             close(cli);
