@@ -6,7 +6,7 @@
 
 **Run Linux containers and a full Linux desktop on your Android phone. No root.**
 
-A real Alpine Linux VM with its own kernel - not a chroot or proot trick - so rootless **Podman, Docker and LXC** behave exactly like they do on a server.
+A real Alpine Linux VM with its own kernel - not a chroot or proot trick - so **Podman, Docker and LXC** behave exactly like they do on a server.
 
 [![Release](https://img.shields.io/github/v/release/ExTV/Podroid?include_prereleases&style=flat-square&label=release&color=blue)](https://github.com/ExTV/Podroid/releases)
 [![Downloads](https://img.shields.io/github/downloads/ExTV/Podroid/total?style=flat-square&color=brightgreen)](https://github.com/ExTV/Podroid/releases)
@@ -30,7 +30,7 @@ A real Alpine Linux VM with its own kernel - not a chroot or proot trick - so ro
 
 ## What you get
 
-- **Podman, Docker and LXC** - rootless, pre-installed, ready the moment it boots
+- **Podman, Docker and LXC** - pre-installed, ready the moment it boots
 - **A real VM** - Alpine Linux on a custom kernel via QEMU, or hardware-accelerated AVF on supported pKVM devices
 - **In-app terminal** - full xterm-256color, 122 color themes, 13 fonts, live resize
 - **X11 desktop** - run GUI Linux apps in a built-in viewer with touch, keyboard, mouse and audio
