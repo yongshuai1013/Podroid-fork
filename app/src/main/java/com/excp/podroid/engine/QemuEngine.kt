@@ -568,9 +568,14 @@ class QemuEngine @Inject constructor(
         val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
             android.os.Environment.DIRECTORY_DOWNLOADS
         )
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
-            config.storageAccessEnabled &&
-            android.os.Environment.isExternalStorageManager() &&
+        val hasStorageAccess = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
+            android.os.Environment.isExternalStorageManager()
+        else
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (config.storageAccessEnabled &&
+            hasStorageAccess &&
             downloadsDir.exists()) {
             // security_model=mapped-xattr keeps QEMU's 9p worker out of the
             // chmod/chown syscall path that has triggered SIGILL on Tensor /

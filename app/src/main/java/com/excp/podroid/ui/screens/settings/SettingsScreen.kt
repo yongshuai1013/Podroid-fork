@@ -1,10 +1,14 @@
 package com.excp.podroid.ui.screens.settings
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -628,6 +632,7 @@ private fun DownloadsSharingRow(
 ) {
     val context = LocalContext.current
     val canManageAllFiles = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+    val writeStoragePermLauncher = rememberLauncherForActivityResult(RequestPermission()) { _ -> }
 
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.R)
     fun openAllFilesAccessSettings() {
@@ -646,8 +651,16 @@ private fun DownloadsSharingRow(
                 checked = enabled && available,
                 onCheckedChange = { checked ->
                     onToggle(checked)
-                    if (checked && canManageAllFiles && !Environment.isExternalStorageManager()) {
-                        openAllFilesAccessSettings()
+                    if (checked) {
+                        if (canManageAllFiles && !Environment.isExternalStorageManager()) {
+                            openAllFilesAccessSettings()
+                        } else if (!canManageAllFiles &&
+                            ContextCompat.checkSelfPermission(
+                                context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            writeStoragePermLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        }
                     }
                 },
                 enabled = vmNotRunning && available,
