@@ -12,6 +12,9 @@
     <string name="status_running">运行中</string>
     <string name="status_stopped">已停止</string>
     <string name="status_idle">空闲</string>
+    <string name="status_stopping">正在关闭…</string>
+    <string name="stopping_vm">正在停止虚拟机…</string>
+    <string name="stopping_action">正在停止…</string>
 
     <!-- Network -->
     <string name="network">网络</string>
@@ -89,6 +92,11 @@
     <string name="export_diagnostic_log">导出诊断日志</string>
     <string name="avf_diagnostic">AVF (pKVM) 诊断</string>
     <string name="running_avf_diagnostic">运行 AVF 诊断…</string>
+    <string name="probing_avf">正在探测…</string>
+    <string name="export_diagnostic_subject">Podroid 诊断日志</string>
+    <string name="export_diagnostic_chooser">分享诊断日志</string>
+    <string name="export_diagnostic_failed">导出失败：%1$s</string>
+    <string name="unknown_error">未知错误</string>
     <string name="verbose_avf_logging">详细 AVF 日志</string>
     <string name="close">关闭</string>
     <string name="add_port_forward">添加端口转发</string>
